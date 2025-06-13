@@ -30,6 +30,8 @@ def run_process():
         while True:
             # Obtener informacion de la pagina
             soup = get_html.get_info(COMPRA_ALQUILER, BARRIO, contador, driver)
+            print(f"Procesando página: {contador}")
+
             
             anuncios = soup.find_all("div", class_="postingsList-module__card-container")
             
@@ -48,20 +50,24 @@ def run_process():
             
             # Chequear si hay una proxima pagina
             div_tag = soup.find("div", class_="paging-module__container-paging")
+            print("Div de paginación:", div_tag)
+            
+
+            if div_tag is None:
+                print("No se encontró la paginación, terminando el proceso.")
+                break  # No hay más páginas
+                
             links_data = [{"text": a.get_text(strip=False), "href": a["href"], "data_qa": a.get("data-qa", "")} for a in div_tag.find_all("a")]
+
             if any(link["data_qa"] == "PAGING_NEXT" for link in links_data):
-                contador = contador + 1
+                contador += 1
             else:
                 break
 
         export_info.save_info(df_properties)
 
-        
-    
     finally:
         driver.quit()
-
-
 
 if __name__ == "__main__":
     run_process()
